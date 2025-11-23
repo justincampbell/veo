@@ -207,3 +207,44 @@ func hasNextPage(linkHeader string) bool {
 	}
 	return false
 }
+
+// RecordingDetails represents detailed information about a recording/match
+type RecordingDetails struct {
+	ID                   string                 `json:"id"`
+	Identifier           string                 `json:"identifier"`
+	Slug                 string                 `json:"slug"`
+	Title                string                 `json:"title"`
+	Created              time.Time              `json:"created"`
+	Start                time.Time              `json:"start"`
+	End                  time.Time              `json:"end"`
+	Duration             int                    `json:"duration"`
+	Type                 string                 `json:"type"`
+	OwnTeamHomeOrAway    string                 `json:"own_team_home_or_away"`
+	OpponentTeamName     string                 `json:"opponent_team_name"`
+	OpponentClubName     string                 `json:"opponent_club_name"`
+	OpponentTeamColor    string                 `json:"opponent_team_color"`
+	OpponentShortName    string                 `json:"opponent_short_name"`
+	OwnTeamColor         string                 `json:"own_team_color"`
+	OwnTeamFormation     string                 `json:"own_team_formation"`
+	OpponentTeamFormation string                `json:"opponent_team_formation"`
+	Team                 interface{}            `json:"team"` // Can be string, object, or null
+	Info                 map[string]interface{} `json:"info"`
+	Permissions          map[string]interface{} `json:"permissions"`
+}
+
+// GetRecording retrieves detailed information about a specific recording/match
+func (c *Client) GetRecording(identifier string) (*RecordingDetails, error) {
+	path := fmt.Sprintf("/matches/%s/", identifier)
+
+	resp, err := c.doRequest("GET", path, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var details RecordingDetails
+	if err := decodeResponse(resp, &details); err != nil {
+		return nil, err
+	}
+
+	return &details, nil
+}

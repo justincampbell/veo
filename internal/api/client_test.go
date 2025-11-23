@@ -203,3 +203,110 @@ func TestHasNextPage(t *testing.T) {
 		})
 	}
 }
+
+func TestGetRecording(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Verify auth header
+		auth := r.Header.Get("Authorization")
+		if auth != "Bearer test-token" {
+			t.Errorf("expected Bearer token, got %q", auth)
+		}
+
+		// Verify URL path
+		expectedPath := "/matches/test-id-12345/"
+		if r.URL.Path != expectedPath {
+			t.Errorf("expected path %s, got %s", expectedPath, r.URL.Path)
+		}
+
+		// Return mock response
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{
+			"id": "test-id-12345",
+			"identifier": "test-id-12345",
+			"slug": "20251116-test-match",
+			"title": "Test Match",
+			"created": "2025-11-22T20:09:36.464909+01:00",
+			"start": "2025-11-16T15:58:21.251456+01:00",
+			"end": "2025-11-16T16:55:11.380000+01:00",
+			"duration": 3410,
+			"type": "match",
+			"own_team_home_or_away": "home",
+			"opponent_team_name": "Opponent Team",
+			"opponent_club_name": "Opponent Club",
+			"opponent_team_color": "blue",
+			"opponent_short_name": "OPP",
+			"own_team_color": "red",
+			"own_team_formation": "4-3-1",
+			"opponent_team_formation": "4-4-2",
+			"team": null,
+			"info": {
+				"stats": {
+					"score": {
+						"own": 2,
+						"opponent": 1
+					}
+				},
+				"age_group": "U11"
+			}
+		}`))
+	}))
+	defer server.Close()
+
+	c := NewClient(WithBaseURL(server.URL), WithAuthToken("test-token"))
+	details, err := c.GetRecording("test-id-12345")
+	if err != nil {
+		t.Fatalf("GetRecording failed: %v", err)
+	}
+
+	// Verify response fields
+	if details.Identifier != "test-id-12345" {
+		t.Errorf("expected identifier 'test-id-12345', got %q", details.Identifier)
+	}
+
+	if details.Title != "Test Match" {
+		t.Errorf("expected title 'Test Match', got %q", details.Title)
+	}
+
+	if details.Type != "match" {
+		t.Errorf("expected type 'match', got %q", details.Type)
+	}
+
+	if details.Duration != 3410 {
+		t.Errorf("expected duration 3410, got %d", details.Duration)
+	}
+
+	if details.OwnTeamHomeOrAway != "home" {
+		t.Errorf("expected own_team_home_or_away 'home', got %q", details.OwnTeamHomeOrAway)
+	}
+
+	if details.OpponentTeamName != "Opponent Team" {
+		t.Errorf("expected opponent_team_name 'Opponent Team', got %q", details.OpponentTeamName)
+	}
+
+	if details.OwnTeamColor != "red" {
+		t.Errorf("expected own_team_color 'red', got %q", details.OwnTeamColor)
+	}
+
+	if details.OpponentTeamColor != "blue" {
+		t.Errorf("expected opponent_team_color 'blue', got %q", details.OpponentTeamColor)
+	}
+
+	// Verify info field parsing
+	if details.Info == nil {
+		t.Error("expected Info to be populated")
+	}
+}
+
+func TestGetRecordingNotFound(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte(`{"detail": "Not found"}`))
+	}))
+	defer server.Close()
+
+	c := NewClient(WithBaseURL(server.URL), WithAuthToken("test-token"))
+	_, err := c.GetRecording("nonexistent-id")
+	if err == nil {
+		t.Error("expected error for nonexistent recording, got nil")
+	}
+}

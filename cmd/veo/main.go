@@ -20,6 +20,7 @@ func main() {
 
 	// Add subcommands
 	rootCmd.AddCommand(commands.NewListCmd())
+	rootCmd.AddCommand(commands.NewGetCmd())
 	rootCmd.AddCommand(commands.NewUpdateCmd())
 
 	if err := rootCmd.Execute(); err != nil {
