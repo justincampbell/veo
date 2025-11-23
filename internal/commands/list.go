@@ -59,7 +59,9 @@ func NewListCmd() *cobra.Command {
 
 			for _, r := range recordings {
 				duration := formatDuration(r.Duration)
-				date := r.Start.Format("2006-01-02 15:04")
+				// Convert to local timezone
+				localTime := r.Start.Local()
+				date := localTime.Format("2006-01-02 15:04")
 				title := truncateString(r.Title, titleMaxLen)
 				fmt.Fprintf(w, "%s\t%s\t%s\t%s\n", r.Identifier, title, duration, date)
 			}
