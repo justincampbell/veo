@@ -124,6 +124,7 @@ func (c *Client) ListRecordings(clubSlug string, opts *ListRecordingsOptions) ([
 	params.Set("filter", "own")
 	params.Set("fields", "camera")
 	params.Add("fields", "created")
+	params.Add("fields", "start")
 	params.Add("fields", "duration")
 	params.Add("fields", "identifier")
 	params.Add("fields", "slug")

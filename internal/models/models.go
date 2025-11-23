@@ -5,7 +5,8 @@ import "time"
 // Recording represents a recording from the list endpoint
 type Recording struct {
 	Camera       string    `json:"camera"`
-	Created      time.Time `json:"created"`
+	Created      time.Time `json:"created"`  // Upload/processing time
+	Start        time.Time `json:"start"`    // Actual recording start time (match date)
 	Duration     int       `json:"duration"` // in seconds
 	Identifier   string    `json:"identifier"`
 	Slug         string    `json:"slug"`

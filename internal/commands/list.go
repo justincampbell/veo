@@ -52,16 +52,16 @@ func NewListCmd() *cobra.Command {
 
 			// Print results in table format
 			w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
-			fmt.Fprintln(w, "ID\tTITLE\tDURATION\tCREATED")
+			fmt.Fprintln(w, "ID\tTITLE\tDURATION\tDATE")
 
 			// Calculate title truncation length based on terminal width
 			titleMaxLen := calculateTitleMaxLength()
 
 			for _, r := range recordings {
 				duration := formatDuration(r.Duration)
-				created := r.Created.Format("2006-01-02 15:04")
+				date := r.Start.Format("2006-01-02 15:04")
 				title := truncateString(r.Title, titleMaxLen)
-				fmt.Fprintf(w, "%s\t%s\t%s\t%s\n", r.Identifier, title, duration, created)
+				fmt.Fprintf(w, "%s\t%s\t%s\t%s\n", r.Identifier, title, duration, date)
 			}
 			w.Flush()
 
