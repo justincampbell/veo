@@ -16,12 +16,27 @@ make build
 
 ## Usage
 
-```bash
-# List videos
-veo list
+### Authentication
 
-# Update video metadata
-veo update <video-id>
+Set your Veo Bearer token as an environment variable:
+
+```bash
+export VEO_TOKEN="your-token-here"
+```
+
+You can extract this from your browser's DevTools while logged into app.veo.co (Network tab → any API request → Authorization header).
+
+### List Recordings
+
+```bash
+# List first page (20 recordings)
+veo list --club your-club-slug
+
+# List specific page
+veo list --club your-club-slug --page 2
+
+# List all recordings (fetches all pages)
+veo list --club your-club-slug --all
 ```
 
 ## Development
@@ -37,33 +52,33 @@ make build
 make run
 ```
 
-## Project Goals
+## Current Features
 
-This CLI aims to provide the following functionality:
-- List videos/recordings/matches (using API's terminology)
-- Update video metadata: title, opponent, home/away, match type
-- Update sides (for automatic goal detection and score tracking)
-- Get sharing URL with timestamp from first kickoff
-- Get highlights URL (automatically generated)
+- ✅ **List recordings** - View all recordings with pagination support
+  - Default: first page (20 items)
+  - `--page N` for specific page
+  - `--all` to fetch all pages
+- ✅ Bearer token authentication via environment variable
+- ✅ Table output with title, slug, duration, and date
 
-## Development Plan
+## Roadmap
 
-### Phase 1: API Discovery (Current)
-1. Export HAR file from browser while interacting with veo.co
-2. Analyze HAR to identify:
-   - Base URL and endpoints
-   - Authentication mechanism
-   - Request/response structures
-   - Field names and data types
+See [GitHub Issues](https://github.com/justincampbell/veo/issues) for planned features and enhancements.
 
-### Phase 2: Implementation
-1. Update `internal/api/client.go` with actual endpoints
-2. Update `internal/models/models.go` with real data structures
-3. Implement commands in `internal/commands/`
-4. Add integration tests
+**Upcoming features:**
+- Get match details
+- Update match metadata
+- Update team sides/colors
+- Get highlights
+- Generate sharing URLs with kickoff timestamp
+- OAuth login flow
+- Configuration file support
+- JSON output format
 
-### Phase 3: Polish
-1. Add configuration file support
-2. Improve error messages
-3. Add output formatting (JSON, table, etc.)
-4. Documentation
+## Contributing
+
+This project tracks work via GitHub Issues. See the [issue list](https://github.com/justincampbell/veo/issues) for open tasks and feature requests.
+
+## API Documentation
+
+See [`docs/api.md`](docs/api.md) for detailed API documentation discovered through reverse engineering.
