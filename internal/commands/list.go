@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"text/tabwriter"
@@ -16,6 +17,7 @@ func NewListCmd() *cobra.Command {
 	var clubSlug string
 	var page int
 	var all bool
+	var jsonOutput bool
 
 	cmd := &cobra.Command{
 		Use:   "list",
@@ -50,6 +52,16 @@ func NewListCmd() *cobra.Command {
 				return fmt.Errorf("failed to list recordings: %w", err)
 			}
 
+			// Output as JSON if requested
+			if jsonOutput {
+				encoder := json.NewEncoder(os.Stdout)
+				encoder.SetIndent("", "  ")
+				if err := encoder.Encode(result.Recordings); err != nil {
+					return fmt.Errorf("failed to encode JSON: %w", err)
+				}
+				return nil
+			}
+
 			// Print results in table format
 			w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
 			fmt.Fprintln(w, "ID\tTITLE\tDURATION\tDATE")
@@ -81,6 +93,7 @@ func NewListCmd() *cobra.Command {
 	cmd.Flags().StringVarP(&clubSlug, "club", "c", "", "Club slug (or set VEO_CLUB environment variable)")
 	cmd.Flags().IntVarP(&page, "page", "p", 1, "Page number (default: 1)")
 	cmd.Flags().BoolVarP(&all, "all", "a", false, "Fetch all pages")
+	cmd.Flags().BoolVarP(&jsonOutput, "json", "j", false, "Output as JSON")
 
 	return cmd
 }
