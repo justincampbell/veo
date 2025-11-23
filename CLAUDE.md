@@ -1,0 +1,3 @@
+- Use goimports when editing Go files
+- Keep track of work/TODOs/progress in GitHub issues
+- Always write/update/run tests after changes
