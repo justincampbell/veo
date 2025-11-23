@@ -13,7 +13,7 @@ type Recording struct {
 	Title        string    `json:"title"`
 	URL          string    `json:"url"`
 	Thumbnail    string    `json:"thumbnail"`
-	ReelURL      string    `json:"reel_url"`
+	ReelURL      string    `json:"reel_url"` // Full game highlights/reel download URL
 	Team         string    `json:"team"`
 	Privacy      string    `json:"privacy"`
 	Permissions  string    `json:"permissions"`

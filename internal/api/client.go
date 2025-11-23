@@ -228,6 +228,7 @@ type RecordingDetails struct {
 	OwnTeamFormation     string                 `json:"own_team_formation"`
 	OpponentTeamFormation string                `json:"opponent_team_formation"`
 	Team                 interface{}            `json:"team"` // Can be string, object, or null
+	ReelURL              string                 `json:"reel_url"` // Full game highlights/reel download URL
 	Info                 map[string]interface{} `json:"info"`
 	Permissions          map[string]interface{} `json:"permissions"`
 }
@@ -247,4 +248,32 @@ func (c *Client) GetRecording(identifier string) (*RecordingDetails, error) {
 	}
 
 	return &details, nil
+}
+
+// Period represents a match period (half)
+type Period struct {
+	PublicIdentifier string `json:"public_identifier"`
+	Timeframe        []int  `json:"timeframe"` // [start_seconds, end_seconds]
+	OwnSide          string `json:"own_side"`  // "left" or "right"
+	Name             string `json:"name"`
+	UserModified     *bool  `json:"user_modified"`
+	IsConfirmed      bool   `json:"is_confirmed"`
+	Duration         int    `json:"duration"` // in seconds
+}
+
+// GetPeriods retrieves period information (kickoff timestamps) for a match
+func (c *Client) GetPeriods(slug string) ([]Period, error) {
+	path := fmt.Sprintf("/matches/%s/periods/", slug)
+
+	resp, err := c.doRequest("GET", path, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var periods []Period
+	if err := decodeResponse(resp, &periods); err != nil {
+		return nil, err
+	}
+
+	return periods, nil
 }

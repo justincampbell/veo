@@ -64,6 +64,13 @@ Use "latest" to get the most recent recording.`,
 				return fmt.Errorf("failed to get recording: %w", err)
 			}
 
+			// Get periods for kickoff timestamp
+			periods, err := client.GetPeriods(details.Slug)
+			if err != nil {
+				// Don't fail if periods aren't available, just log
+				fmt.Fprintf(os.Stderr, "Warning: could not fetch periods: %v\n", err)
+			}
+
 			// Output as JSON if requested
 			if jsonOutput {
 				encoder := json.NewEncoder(os.Stdout)
@@ -75,7 +82,7 @@ Use "latest" to get the most recent recording.`,
 			}
 
 			// Print human-readable format
-			printRecordingDetails(details)
+			printRecordingDetails(details, periods)
 
 			return nil
 		},
@@ -88,7 +95,7 @@ Use "latest" to get the most recent recording.`,
 }
 
 // printRecordingDetails prints recording details in a human-readable format
-func printRecordingDetails(d *api.RecordingDetails) {
+func printRecordingDetails(d *api.RecordingDetails, periods []api.Period) {
 	fmt.Printf("ID:          %s\n", d.Identifier)
 	fmt.Printf("Title:       %s\n", d.Title)
 	fmt.Printf("Type:        %s\n", d.Type)
@@ -171,4 +178,28 @@ func printRecordingDetails(d *api.RecordingDetails) {
 	}
 
 	fmt.Printf("\nSlug:        %s\n", d.Slug)
+
+	// Share URL with kickoff timestamp
+	if len(periods) > 0 && len(periods[0].Timeframe) > 0 {
+		kickoffSeconds := periods[0].Timeframe[0]
+		kickoffTime := formatTimestamp(kickoffSeconds)
+		shareURL := fmt.Sprintf("https://app.veo.co/matches/%s/#t=%s", d.Slug, kickoffTime)
+		fmt.Printf("\nShare URL:   %s\n", shareURL)
+	} else {
+		// Fallback to share URL without timestamp
+		shareURL := fmt.Sprintf("https://app.veo.co/matches/%s/", d.Slug)
+		fmt.Printf("\nShare URL:   %s\n", shareURL)
+	}
+
+	// Highlights URL
+	if d.ReelURL != "" {
+		fmt.Printf("Highlights:  %s\n", d.ReelURL)
+	}
+}
+
+// formatTimestamp converts seconds to MM:SS format for URL timestamps
+func formatTimestamp(seconds int) string {
+	minutes := seconds / 60
+	secs := seconds % 60
+	return fmt.Sprintf("%02d:%02d", minutes, secs)
 }
