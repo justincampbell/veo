@@ -6,7 +6,10 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"time"
+
+	"github.com/justincampbell/veo/internal/models"
 )
 
 // Client represents a Veo API client
@@ -43,7 +46,7 @@ func WithHTTPClient(httpClient *http.Client) ClientOption {
 // NewClient creates a new Veo API client
 func NewClient(opts ...ClientOption) *Client {
 	c := &Client{
-		baseURL: "https://app.veo.co", // Default, will update after analyzing HAR
+		baseURL: "https://app.veo.co/api/app",
 		httpClient: &http.Client{
 			Timeout: 30 * time.Second,
 		},
@@ -75,7 +78,6 @@ func (c *Client) doRequest(method, path string, body interface{}) (*http.Respons
 	// Add headers
 	req.Header.Set("Content-Type", "application/json")
 	if c.authToken != "" {
-		// Will update auth mechanism after analyzing HAR
 		req.Header.Set("Authorization", "Bearer "+c.authToken)
 	}
 
@@ -103,4 +105,87 @@ func decodeResponse(resp *http.Response, target interface{}) error {
 	}
 
 	return nil
+}
+
+// ListRecordingsOptions contains options for listing recordings
+type ListRecordingsOptions struct {
+	Page     int  // Page number (1-indexed, 0 means first page)
+	FetchAll bool // If true, fetch all pages
+}
+
+// ListRecordings lists recordings for a club with pagination support
+func (c *Client) ListRecordings(clubSlug string, opts *ListRecordingsOptions) ([]models.Recording, error) {
+	if opts == nil {
+		opts = &ListRecordingsOptions{Page: 1}
+	}
+
+	// Build query parameters with fields we want
+	params := url.Values{}
+	params.Set("filter", "own")
+	params.Set("fields", "camera")
+	params.Add("fields", "created")
+	params.Add("fields", "duration")
+	params.Add("fields", "identifier")
+	params.Add("fields", "slug")
+	params.Add("fields", "title")
+	params.Add("fields", "url")
+	params.Add("fields", "thumbnail")
+	params.Add("fields", "reel_url")
+	params.Add("fields", "team")
+	params.Add("fields", "privacy")
+	params.Add("fields", "permissions")
+	params.Add("fields", "is_accessible")
+
+	var allRecordings []models.Recording
+	page := opts.Page
+	if page == 0 {
+		page = 1
+	}
+
+	for {
+		// Add page parameter if not first page
+		if page > 1 {
+			params.Set("page", fmt.Sprintf("%d", page))
+		}
+
+		path := fmt.Sprintf("/clubs/%s/recordings/?%s", clubSlug, params.Encode())
+
+		resp, err := c.doRequest("GET", path, nil)
+		if err != nil {
+			return nil, err
+		}
+
+		var recordings []models.Recording
+		if err := decodeResponse(resp, &recordings); err != nil {
+			return nil, err
+		}
+
+		allRecordings = append(allRecordings, recordings...)
+
+		// If not fetching all, or no more pages, stop
+		if !opts.FetchAll {
+			break
+		}
+
+		// Check for next page in Link header
+		linkHeader := resp.Header.Get("Link")
+		if !hasNextPage(linkHeader) {
+			break
+		}
+
+		page++
+	}
+
+	return allRecordings, nil
+}
+
+// hasNextPage checks if the Link header contains a "next" relation
+func hasNextPage(linkHeader string) bool {
+	// Check if Link header contains rel="next"
+	for i := 0; i <= len(linkHeader)-10; i++ {
+		if linkHeader[i:i+10] == `rel="next"` {
+			return true
+		}
+	}
+	return false
 }

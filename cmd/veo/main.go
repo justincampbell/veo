@@ -12,9 +12,9 @@ var version = "dev"
 
 func main() {
 	rootCmd := &cobra.Command{
-		Use:   "veo",
-		Short: "CLI for Veo sports camera",
-		Long:  `A command-line interface for interacting with the Veo sports camera API.`,
+		Use:     "veo",
+		Short:   "CLI for Veo sports camera",
+		Long:    `A command-line interface for interacting with the Veo sports camera API.`,
 		Version: version,
 	}
 
