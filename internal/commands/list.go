@@ -71,7 +71,8 @@ func NewListCmd() *cobra.Command {
 
 			for _, r := range result.Recordings {
 				duration := formatDuration(r.Duration)
-				// Convert to local timezone
+				// Convert to local timezone - use Start (match date set in UI)
+				// Note: UI only sets date, time defaults to noon UTC
 				localTime := r.Start.Local()
 				date := localTime.Format("2006-01-02 15:04")
 				title := truncateString(r.Title, titleMaxLen)
