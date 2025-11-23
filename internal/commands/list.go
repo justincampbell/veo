@@ -27,9 +27,12 @@ func NewListCmd() *cobra.Command {
 				return fmt.Errorf("VEO_TOKEN environment variable is required")
 			}
 
-			// Require club slug
+			// Get club slug from flag or environment variable
 			if clubSlug == "" {
-				return fmt.Errorf("--club flag is required")
+				clubSlug = os.Getenv("VEO_CLUB")
+			}
+			if clubSlug == "" {
+				return fmt.Errorf("--club flag or VEO_CLUB environment variable is required")
 			}
 
 			// Create API client
@@ -62,10 +65,9 @@ func NewListCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVarP(&clubSlug, "club", "c", "", "Club slug (required)")
+	cmd.Flags().StringVarP(&clubSlug, "club", "c", "", "Club slug (or set VEO_CLUB environment variable)")
 	cmd.Flags().IntVarP(&page, "page", "p", 1, "Page number (default: 1)")
 	cmd.Flags().BoolVarP(&all, "all", "a", false, "Fetch all pages")
-	cmd.MarkFlagRequired("club")
 
 	return cmd
 }

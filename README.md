@@ -26,17 +26,26 @@ export VEO_TOKEN="your-token-here"
 
 You can extract this from your browser's DevTools while logged into app.veo.co (Network tab → any API request → Authorization header).
 
+Optionally, set a default club to avoid using the `--club` flag:
+
+```bash
+export VEO_CLUB="your-club-slug"
+```
+
 ### List Recordings
 
 ```bash
 # List first page (20 recordings)
 veo list --club your-club-slug
 
+# Or use VEO_CLUB environment variable
+veo list
+
 # List specific page
-veo list --club your-club-slug --page 2
+veo list --page 2
 
 # List all recordings (fetches all pages)
-veo list --club your-club-slug --all
+veo list --all
 ```
 
 ## Development
