@@ -12,12 +12,15 @@ import (
 // NewGetCmd creates the get command
 func NewGetCmd() *cobra.Command {
 	var jsonOutput bool
+	var clubSlug string
 
 	cmd := &cobra.Command{
-		Use:   "get <recording-id>",
+		Use:   "get <recording-id|latest>",
 		Short: "Get details for a specific recording",
-		Long:  `Get detailed information about a specific recording/match.`,
-		Args:  cobra.ExactArgs(1),
+		Long:  `Get detailed information about a specific recording/match.
+
+Use "latest" to get the most recent recording.`,
+		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			recordingID := args[0]
 
@@ -29,6 +32,31 @@ func NewGetCmd() *cobra.Command {
 
 			// Create API client
 			client := api.NewClient(api.WithAuthToken(token))
+
+			// Handle "latest" special case
+			if recordingID == "latest" {
+				// Get club slug from flag or environment variable
+				if clubSlug == "" {
+					clubSlug = os.Getenv("VEO_CLUB")
+				}
+				if clubSlug == "" {
+					return fmt.Errorf("--club flag or VEO_CLUB environment variable is required for 'latest'")
+				}
+
+				// List recordings to get the latest one
+				opts := &api.ListRecordingsOptions{Page: 1}
+				result, err := client.ListRecordings(clubSlug, opts)
+				if err != nil {
+					return fmt.Errorf("failed to list recordings: %w", err)
+				}
+
+				if len(result.Recordings) == 0 {
+					return fmt.Errorf("no recordings found")
+				}
+
+				// Use the first recording (most recent)
+				recordingID = result.Recordings[0].Identifier
+			}
 
 			// Get recording details
 			details, err := client.GetRecording(recordingID)
@@ -54,6 +82,7 @@ func NewGetCmd() *cobra.Command {
 	}
 
 	cmd.Flags().BoolVarP(&jsonOutput, "json", "j", false, "Output as JSON")
+	cmd.Flags().StringVarP(&clubSlug, "club", "c", "", "Club slug (required for 'latest', or set VEO_CLUB environment variable)")
 
 	return cmd
 }
@@ -106,9 +135,31 @@ func printRecordingDetails(d *api.RecordingDetails) {
 	// Score if available
 	if d.Info != nil {
 		if stats, ok := d.Info["stats"].(map[string]interface{}); ok {
-			if score, ok := stats["score"].(map[string]interface{}); ok {
-				ownScore, _ := score["own"].(float64)
-				oppScore, _ := score["opponent"].(float64)
+			// Try score_aggregated first (actual final score), fall back to score
+			var ownScore, oppScore float64
+			var hasScore bool
+
+			if scoreAgg, ok := stats["score_aggregated"].(map[string]interface{}); ok {
+				if own, ok := scoreAgg["own"].(float64); ok {
+					ownScore = own
+					hasScore = true
+				}
+				if opp, ok := scoreAgg["opponent"].(float64); ok {
+					oppScore = opp
+					hasScore = true
+				}
+			} else if score, ok := stats["score"].(map[string]interface{}); ok {
+				if own, ok := score["own"].(float64); ok {
+					ownScore = own
+					hasScore = true
+				}
+				if opp, ok := score["opponent"].(float64); ok {
+					oppScore = opp
+					hasScore = true
+				}
+			}
+
+			if hasScore {
 				fmt.Printf("\nScore:       %.0f - %.0f\n", ownScore, oppScore)
 			}
 
