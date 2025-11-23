@@ -8,6 +8,7 @@ import (
 
 	"github.com/justincampbell/veo/internal/api"
 	"github.com/spf13/cobra"
+	"golang.org/x/term"
 )
 
 // NewListCmd creates the list command
@@ -52,10 +53,14 @@ func NewListCmd() *cobra.Command {
 			// Print results in table format
 			w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
 			fmt.Fprintln(w, "ID\tTITLE\tDURATION\tCREATED")
+
+			// Calculate title truncation length based on terminal width
+			titleMaxLen := calculateTitleMaxLength()
+
 			for _, r := range recordings {
 				duration := formatDuration(r.Duration)
 				created := r.Created.Format("2006-01-02 15:04")
-				title := truncateString(r.Title, 50)
+				title := truncateString(r.Title, titleMaxLen)
 				fmt.Fprintf(w, "%s\t%s\t%s\t%s\n", r.Identifier, title, duration, created)
 			}
 			w.Flush()
@@ -80,6 +85,37 @@ func formatDuration(seconds int) string {
 	m := int(d.Minutes()) % 60
 	s := int(d.Seconds()) % 60
 	return fmt.Sprintf("%02d:%02d:%02d", h, m, s)
+}
+
+// calculateTitleMaxLength determines title truncation length based on terminal width
+func calculateTitleMaxLength() int {
+	// Check if stdout is a terminal
+	if !term.IsTerminal(int(os.Stdout.Fd())) {
+		// Not a terminal (piped/redirected) - don't truncate
+		return 1000
+	}
+
+	// Get terminal width
+	width, _, err := term.GetSize(int(os.Stdout.Fd()))
+	if err != nil {
+		// Can't get terminal size, use default
+		return 50
+	}
+
+	// Calculate available space for title
+	// Format: ID (36) + spacing (2) + DURATION (8) + spacing (2) + CREATED (16) + spacing (6) = 70
+	const fixedWidth = 70
+	titleWidth := width - fixedWidth
+
+	// Set reasonable bounds
+	if titleWidth < 30 {
+		return 30 // minimum
+	}
+	if titleWidth > 100 {
+		return 100 // maximum
+	}
+
+	return titleWidth
 }
 
 // truncateString truncates a string to maxLen, adding "..." if truncated
