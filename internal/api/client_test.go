@@ -68,17 +68,17 @@ func TestListRecordingsSinglePage(t *testing.T) {
 	defer server.Close()
 
 	c := NewClient(WithBaseURL(server.URL), WithAuthToken("test-token"))
-	recordings, err := c.ListRecordings("test-club", nil)
+	result, err := c.ListRecordings("test-club", nil)
 	if err != nil {
 		t.Fatalf("ListRecordings failed: %v", err)
 	}
 
-	if len(recordings) != 2 {
-		t.Errorf("expected 2 recordings, got %d", len(recordings))
+	if len(result.Recordings) != 2 {
+		t.Errorf("expected 2 recordings, got %d", len(result.Recordings))
 	}
 
-	if recordings[0].Title != "Recording 1" {
-		t.Errorf("expected title 'Recording 1', got %q", recordings[0].Title)
+	if result.Recordings[0].Title != "Recording 1" {
+		t.Errorf("expected title 'Recording 1', got %q", result.Recordings[0].Title)
 	}
 
 	if requestCount != 1 {
@@ -115,21 +115,25 @@ func TestListRecordingsWithPagination(t *testing.T) {
 	c := NewClient(WithBaseURL(server.URL), WithAuthToken("test-token"))
 
 	opts := &ListRecordingsOptions{FetchAll: true}
-	recordings, err := c.ListRecordings("test-club", opts)
+	result, err := c.ListRecordings("test-club", opts)
 	if err != nil {
 		t.Fatalf("ListRecordings failed: %v", err)
 	}
 
-	if len(recordings) != 3 {
-		t.Errorf("expected 3 recordings, got %d", len(recordings))
+	if len(result.Recordings) != 3 {
+		t.Errorf("expected 3 recordings, got %d", len(result.Recordings))
 	}
 
 	if requestCount != 2 {
 		t.Errorf("expected 2 requests, got %d", requestCount)
 	}
 
-	if recordings[2].Title != "Recording 3" {
-		t.Errorf("expected third recording title 'Recording 3', got %q", recordings[2].Title)
+	if result.Recordings[2].Title != "Recording 3" {
+		t.Errorf("expected third recording title 'Recording 3', got %q", result.Recordings[2].Title)
+	}
+
+	if result.TotalCount != 3 {
+		t.Errorf("expected total count 3, got %d", result.TotalCount)
 	}
 }
 
@@ -153,13 +157,13 @@ func TestListRecordingsSpecificPage(t *testing.T) {
 	c := NewClient(WithBaseURL(server.URL), WithAuthToken("test-token"))
 
 	opts := &ListRecordingsOptions{Page: 2}
-	recordings, err := c.ListRecordings("test-club", opts)
+	result, err := c.ListRecordings("test-club", opts)
 	if err != nil {
 		t.Fatalf("ListRecordings failed: %v", err)
 	}
 
-	if len(recordings) != 1 {
-		t.Errorf("expected 1 recording, got %d", len(recordings))
+	if len(result.Recordings) != 1 {
+		t.Errorf("expected 1 recording, got %d", len(result.Recordings))
 	}
 
 	if requestCount != 1 {

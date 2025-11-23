@@ -113,8 +113,14 @@ type ListRecordingsOptions struct {
 	FetchAll bool // If true, fetch all pages
 }
 
+// ListRecordingsResult contains recordings and metadata
+type ListRecordingsResult struct {
+	Recordings []models.Recording
+	TotalCount int // Total count from API (x-veo-total-count header)
+}
+
 // ListRecordings lists recordings for a club with pagination support
-func (c *Client) ListRecordings(clubSlug string, opts *ListRecordingsOptions) ([]models.Recording, error) {
+func (c *Client) ListRecordings(clubSlug string, opts *ListRecordingsOptions) (*ListRecordingsResult, error) {
 	if opts == nil {
 		opts = &ListRecordingsOptions{Page: 1}
 	}
@@ -138,6 +144,7 @@ func (c *Client) ListRecordings(clubSlug string, opts *ListRecordingsOptions) ([
 	params.Add("fields", "is_accessible")
 
 	var allRecordings []models.Recording
+	var totalCount int
 	page := opts.Page
 	if page == 0 {
 		page = 1
@@ -154,6 +161,13 @@ func (c *Client) ListRecordings(clubSlug string, opts *ListRecordingsOptions) ([
 		resp, err := c.doRequest("GET", path, nil)
 		if err != nil {
 			return nil, err
+		}
+
+		// Get total count from header (only need to do this once)
+		if totalCount == 0 {
+			if countStr := resp.Header.Get("x-veo-total-count"); countStr != "" {
+				fmt.Sscanf(countStr, "%d", &totalCount)
+			}
 		}
 
 		var recordings []models.Recording
@@ -177,7 +191,10 @@ func (c *Client) ListRecordings(clubSlug string, opts *ListRecordingsOptions) ([
 		page++
 	}
 
-	return allRecordings, nil
+	return &ListRecordingsResult{
+		Recordings: allRecordings,
+		TotalCount: totalCount,
+	}, nil
 }
 
 // hasNextPage checks if the Link header contains a "next" relation

@@ -45,7 +45,7 @@ func NewListCmd() *cobra.Command {
 				FetchAll: all,
 			}
 
-			recordings, err := client.ListRecordings(clubSlug, opts)
+			result, err := client.ListRecordings(clubSlug, opts)
 			if err != nil {
 				return fmt.Errorf("failed to list recordings: %w", err)
 			}
@@ -57,7 +57,7 @@ func NewListCmd() *cobra.Command {
 			// Calculate title truncation length based on terminal width
 			titleMaxLen := calculateTitleMaxLength()
 
-			for _, r := range recordings {
+			for _, r := range result.Recordings {
 				duration := formatDuration(r.Duration)
 				// Convert to local timezone
 				localTime := r.Start.Local()
@@ -67,7 +67,12 @@ func NewListCmd() *cobra.Command {
 			}
 			w.Flush()
 
-			fmt.Fprintf(os.Stderr, "\nTotal: %d recordings\n", len(recordings))
+			// Show total from API
+			if result.TotalCount > 0 {
+				fmt.Fprintf(os.Stderr, "\nShowing %d of %d total recordings\n", len(result.Recordings), result.TotalCount)
+			} else {
+				fmt.Fprintf(os.Stderr, "\nTotal: %d recordings\n", len(result.Recordings))
+			}
 
 			return nil
 		},
