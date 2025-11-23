@@ -51,11 +51,12 @@ func NewListCmd() *cobra.Command {
 
 			// Print results in table format
 			w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
-			fmt.Fprintln(w, "TITLE\tSLUG\tDURATION\tCREATED")
+			fmt.Fprintln(w, "ID\tTITLE\tDURATION\tCREATED")
 			for _, r := range recordings {
 				duration := formatDuration(r.Duration)
 				created := r.Created.Format("2006-01-02 15:04")
-				fmt.Fprintf(w, "%s\t%s\t%s\t%s\n", r.Title, r.Slug, duration, created)
+				title := truncateString(r.Title, 50)
+				fmt.Fprintf(w, "%s\t%s\t%s\t%s\n", r.Identifier, title, duration, created)
 			}
 			w.Flush()
 
@@ -79,4 +80,15 @@ func formatDuration(seconds int) string {
 	m := int(d.Minutes()) % 60
 	s := int(d.Seconds()) % 60
 	return fmt.Sprintf("%02d:%02d:%02d", h, m, s)
+}
+
+// truncateString truncates a string to maxLen, adding "..." if truncated
+func truncateString(s string, maxLen int) string {
+	if len(s) <= maxLen {
+		return s
+	}
+	if maxLen <= 3 {
+		return s[:maxLen]
+	}
+	return s[:maxLen-3] + "..."
 }
