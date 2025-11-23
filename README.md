@@ -63,33 +63,16 @@ make run
 
 ## Features
 
-### Authentication & Configuration
-- [x] Bearer token authentication via environment variable
-- [x] Default club via `VEO_CLUB` environment variable
-- [ ] OAuth login flow
-- [ ] Configuration file support
-
-### List Recordings
-- [x] View all recordings with pagination support
-  - [x] Default: first page (20 items)
-  - [x] `--page N` for specific page
-  - [x] `--all` to fetch all pages
-- [x] Table output with title, slug, duration, and date
-- [x] JSON output format (`--json`)
-- [x] Dynamic terminal width detection
-- [x] Display in local timezone
-
-### Get Recording Details
-- [x] Get match details by ID or `latest`
-- [x] Show score, teams, and metadata
-- [x] JSON output format (`--json`)
+- [x] Bearer token authentication
+- [x] List recordings with pagination
+- [x] Get recording details
+- [x] JSON output format
 - [x] Generate share URLs
 - [x] Generate highlights URLs
-
-### Update Recordings
-- [ ] Update match metadata (command exists but needs implementation)
+- [ ] OAuth login flow
+- [ ] Configuration file support
+- [ ] Update match metadata
 - [ ] Update team sides/colors
-- [ ] Set/update scores
 
 ## Contributing
 
