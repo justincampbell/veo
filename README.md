@@ -61,28 +61,35 @@ make build
 make run
 ```
 
-## Current Features
+## Features
 
-- ✅ **List recordings** - View all recordings with pagination support
-  - Default: first page (20 items)
-  - `--page N` for specific page
-  - `--all` to fetch all pages
-- ✅ Bearer token authentication via environment variable
-- ✅ Table output with title, slug, duration, and date
+### Authentication & Configuration
+- [x] Bearer token authentication via environment variable
+- [x] Default club via `VEO_CLUB` environment variable
+- [ ] OAuth login flow
+- [ ] Configuration file support
 
-## Roadmap
+### List Recordings
+- [x] View all recordings with pagination support
+  - [x] Default: first page (20 items)
+  - [x] `--page N` for specific page
+  - [x] `--all` to fetch all pages
+- [x] Table output with title, slug, duration, and date
+- [x] JSON output format (`--json`)
+- [x] Dynamic terminal width detection
+- [x] Display in local timezone
 
-See [GitHub Issues](https://github.com/justincampbell/veo/issues) for planned features and enhancements.
+### Get Recording Details
+- [x] Get match details by ID or `latest`
+- [x] Show score, teams, and metadata
+- [x] JSON output format (`--json`)
+- [x] Generate share URLs
+- [x] Generate highlights URLs
 
-**Upcoming features:**
-- Get match details
-- Update match metadata
-- Update team sides/colors
-- Get highlights
-- Generate sharing URLs with kickoff timestamp
-- OAuth login flow
-- Configuration file support
-- JSON output format
+### Update Recordings
+- [ ] Update match metadata (command exists but needs implementation)
+- [ ] Update team sides/colors
+- [ ] Set/update scores
 
 ## Contributing
 
