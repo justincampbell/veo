@@ -160,7 +160,7 @@ func printRecordingDetails(d *api.RecordingDetails) {
 			}
 
 			if hasScore {
-				fmt.Printf("\nScore:       %.0f - %.0f\n", ownScore, oppScore)
+				fmt.Printf("Score:       %.0f-%.0f\n", ownScore, oppScore)
 			}
 
 			// Age group if available
